@@ -84,6 +84,12 @@ class Interpreter
       return Token.new(PLUS, current_char)
     end
 
+    # Ignore whitespace
+    if current_char == " "
+      @pos += 1
+      return get_next_token
+    end
+
     error
   end
 
