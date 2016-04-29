@@ -2,7 +2,7 @@
 #
 # EOF (end-of-file) token is used to indicate that
 # there is no more input left for lexical analysis
-INTEGER, PLUS, EOF = 'INTEGER', 'PLUS', 'EOF'
+INTEGER, PLUS, MINUS, EOF = 'INTEGER', 'PLUS', 'MINUS', 'EOF'
 
 class String
   def is_numeric?
@@ -79,9 +79,14 @@ class Interpreter
       return Token.new(INTEGER, int.to_i)
     end
 
-    if current_char == '+'
+    if current_char == "+"
       @pos += 1
       return Token.new(PLUS, current_char)
+    end
+
+    if current_char == "-"
+      @pos += 1
+      return Token.new(MINUS, current_char)
     end
 
     # Ignore whitespace
@@ -117,7 +122,11 @@ class Interpreter
 
     # we expect the current token to be a '+' token
     op = @current_token
-    eat(PLUS)
+    if op.type == PLUS
+      eat(PLUS)
+    else
+      eat(MINUS)
+    end
 
     # we expect the current token to be a single-digit integer
     right = @current_token
@@ -129,7 +138,11 @@ class Interpreter
     # has been successfully found and the method can just
     # return the result of adding two integers, thus
     # effectively interpreting client input
-    left.value + right.value
+    if op.type == PLUS
+      left.value + right.value
+    else
+      left.value - right.value
+    end
   end
 end
 
