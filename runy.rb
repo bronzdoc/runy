@@ -2,7 +2,14 @@
 #
 # EOF (end-of-file) token is used to indicate that
 # there is no more input left for lexical analysis
-INTEGER, PLUS, MINUS, MULT, EOF = 'INTEGER', 'PLUS', 'MINUS', 'MULT', 'EOF'
+INTEGER, PLUS, MINUS, MULT, DIV, EOF = %w[
+  INTEGER
+  PLUS
+  MINUS
+  MULT
+  DIV
+  EOF
+]
 
 class String
   def is_numeric?
@@ -94,6 +101,11 @@ class Interpreter
       return Token.new(MULT, current_char)
     end
 
+    if current_char == "/"
+      @pos += 1
+      return Token.new(DIV, current_char)
+    end
+
     # Ignore whitespace
     if current_char == " "
       @pos += 1
@@ -134,6 +146,8 @@ class Interpreter
       eat(MINUS)
     when MULT
       eat(MULT)
+    when DIV
+      eat(DIV)
     end
 
     # we expect the current token to be a single-digit integer
@@ -153,6 +167,12 @@ class Interpreter
       left.value - right.value
     when MULT
       left.value * right.value
+    when DIV
+      if right.value == 0
+        "ZeroDivisionError: divided by 0"
+      else
+        left.value / right.value
+      end
     end
   end
 end
