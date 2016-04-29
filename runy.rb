@@ -69,8 +69,14 @@ class Interpreter
     # index to point to the next character after the digit,
     # and return the INTEGER token
     if current_char.is_numeric?
-      @pos += 1
-      return Token.new(INTEGER, current_char.to_i)
+      int = ""
+      # Tokenize multiple digit numbers
+      while current_char.is_numeric?
+        int << current_char
+        @pos += 1
+        current_char = text[@pos]
+      end
+      return Token.new(INTEGER, int.to_i)
     end
 
     if current_char == '+'
