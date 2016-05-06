@@ -133,47 +133,33 @@ class Interpreter
     # set current token to the first token taken from the input
     @current_token = get_next_token
 
-    # we expect the current token to be a single-digit integer
-    left = @current_token
+    # First token must be an INTEGER token
+    result = @current_token.value
     eat(INTEGER)
-
-    # we expect the current token to be a '+' token
-    op = @current_token
-    case op.type
-    when PLUS
-      eat(PLUS)
-    when MINUS
-      eat(MINUS)
-    when MULT
-      eat(MULT)
-    when DIV
-      eat(DIV)
-    end
-
-    # we expect the current token to be a single-digit integer
-    right = @current_token
-    eat(INTEGER)
-    # after the above call the @current_token is set to
-    # EOF token
-
-    # at this point INTEGER PLUS INTEGER sequence of tokens
-    # has been successfully found and the method can just
-    # return the result of adding two integers, thus
-    # effectively interpreting client input
-    case op.type
-    when PLUS
-      left.value + right.value
-    when MINUS
-      left.value - right.value
-    when MULT
-      left.value * right.value
-    when DIV
-      if right.value == 0
-        "ZeroDivisionError: divided by 0"
-      else
-        left.value / right.value
+    while [PLUS, MINUS, MULT, DIV].include?(@current_token.type) do
+      token = @current_token
+      case token.type
+      when PLUS
+        eat(PLUS)
+        result += @current_token.value
+        eat(INTEGER)
+      when MINUS
+        eat(MINUS)
+        result -= @current_token.value
+        eat(INTEGER)
+      when MULT
+        eat(MULT)
+        result *= @current_token.value
+        eat(INTEGER)
+      when DIV
+        eat(DIV)
+        result = result / @current_token.value
+        eat(INTEGER)
       end
+
     end
+
+    result
   end
 end
 
