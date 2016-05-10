@@ -2,14 +2,14 @@
 #
 # EOF (end-of-file) token is used to indicate that
 # there is no more input left for lexical analysis
-INTEGER, PLUS, MINUS, MULT, DIV, EOF = %w[
+INTEGER, PLUS, MINUS, MULT, DIV, EOF = %w(
   INTEGER
   PLUS
   MINUS
   MULT
   DIV
   EOF
-]
+)
 
 class String
   def is_numeric?
@@ -37,20 +37,13 @@ class Token
   end
 end
 
-class Interpreter
+class Lexer
   def initialize(text)
     # client string input, e.g. "3+5"
     @text = text
 
     # @pos is an index into @text
     @pos = 0
-
-    # current token instance
-    @current_token = nil
-  end
-
-  def error
-    raise 'Error parsing input'
   end
 
   def get_next_token
@@ -115,6 +108,58 @@ class Interpreter
     error
   end
 
+  def error
+    raise "Syntax Error"
+  end
+end
+
+class Interpreter
+  def initialize(text)
+    @lexer = Lexer.new(text)
+    @current_token = nil
+  end
+
+  def error
+    raise 'Error parsing input'
+  end
+
+  def factor
+    eat(INTEGER)
+  end
+
+  def expr
+    # expr -> INTEGER PLUS INTEGER
+    # set current token to the first token taken from the input
+    @current_token = @lexer.get_next_token
+
+    # First token must be an INTEGER token
+    result = @current_token.value
+    factor
+    while [PLUS, MINUS, MULT, DIV].include?(@current_token.type) do
+      token = @current_token
+      case token.type
+      when PLUS
+        eat(PLUS)
+        result += @current_token.value
+        factor
+      when MINUS
+        eat(MINUS)
+        result -= @current_token.value
+        factor
+      when MULT
+        eat(MULT)
+        result *= @current_token.value
+        factor
+      when DIV
+        eat(DIV)
+        result = result / @current_token.value
+        factor
+      end
+    end
+
+    result
+  end
+
   def eat(token_type)
     # compare the current token type with the passed token
     # type and if they match then "eat" the current token
@@ -122,44 +167,14 @@ class Interpreter
     # otherwise raise an exception.
 
     if @current_token.type == token_type
-      @current_token = get_next_token
+      @current_token = @lexer.get_next_token
     else
       error
     end
   end
 
-  def expr
-    # expr -> INTEGER PLUS INTEGER
-    # set current token to the first token taken from the input
-    @current_token = get_next_token
-
-    # First token must be an INTEGER token
-    result = @current_token.value
-    eat(INTEGER)
-    while [PLUS, MINUS, MULT, DIV].include?(@current_token.type) do
-      token = @current_token
-      case token.type
-      when PLUS
-        eat(PLUS)
-        result += @current_token.value
-        eat(INTEGER)
-      when MINUS
-        eat(MINUS)
-        result -= @current_token.value
-        eat(INTEGER)
-      when MULT
-        eat(MULT)
-        result *= @current_token.value
-        eat(INTEGER)
-      when DIV
-        eat(DIV)
-        result = result / @current_token.value
-        eat(INTEGER)
-      end
-
-    end
-
-    result
+  def run!
+    expr
   end
 end
 
@@ -175,7 +190,7 @@ def main
     next unless text
 
     interpreter = Interpreter.new(text)
-    result = interpreter.expr
+    result = interpreter.run!
     print(result, "\n")
   end
 end
