@@ -116,47 +116,57 @@ end
 class Interpreter
   def initialize(text)
     @lexer = Lexer.new(text)
-    @current_token = nil
   end
 
   def error
     raise 'Error parsing input'
   end
 
+  # factor: INTEGER
   def factor
     eat(INTEGER)
   end
 
+  # term: factor((MULT|DIV)factor)*
+  def term
+    result = @current_token.value
+
+    factor
+    while [MULT, DIV].include?(@current_token.type) do
+      token = @current_token
+      case token.type
+      when MULT
+        eat(MULT)
+        result *= @current_token.value
+      when DIV
+        eat(DIV)
+        result = result / @current_token.value
+      end
+      factor
+    end
+    result
+  end
+
+  # expr: term((PLUS|MINUS)term)*
   def expr
-    # expr -> INTEGER PLUS INTEGER
     # set current token to the first token taken from the input
     @current_token = @lexer.get_next_token
 
     # First token must be an INTEGER token
     result = @current_token.value
-    factor
-    while [PLUS, MINUS, MULT, DIV].include?(@current_token.type) do
+
+    term
+    while [PLUS, MINUS].include?(@current_token.type) do
       token = @current_token
       case token.type
       when PLUS
         eat(PLUS)
-        result += @current_token.value
-        factor
+        result += term
       when MINUS
         eat(MINUS)
-        result -= @current_token.value
-        factor
-      when MULT
-        eat(MULT)
-        result *= @current_token.value
-        factor
-      when DIV
-        eat(DIV)
-        result = result / @current_token.value
-        factor
+        result -= term
       end
     end
-
     result
   end
 
