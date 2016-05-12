@@ -153,9 +153,7 @@ class Interpreter
     @current_token = @lexer.get_next_token
 
     # First token must be an INTEGER token
-    result = @current_token.value
-
-    term
+    result = term
     while [PLUS, MINUS].include?(@current_token.type) do
       token = @current_token
       case token.type
